@@ -1,0 +1,127 @@
+import pandas as pd 
+import numpy as np  
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split 
+from sklearn.metrics import confusion_matrix, f1_score, classification_report, accuracy_score  
+import tensorflow as tf 
+import keras  
+from keras.layers import Dense, LSTM, Embedding, SpatialDropout1D, Dropout 
+ import plotly.express as px 
+import plotly.graph_objects as go
+import warnings warnings.filterwarnings('ignore')
+from google.colab import files
+  
+uploaded = files.upload()
+df=pd.read_csv('weatherAUS.csv')  
+df.head() 
+df.describe()  
+df.shape 
+df.info() 
+df.isna().sum()  
+import seaborn as sns   
+corrmat = df.corr()
+ cmap = sns.color_palette("rocket",as_cmap=True) 
+plt.subplots(figsize=(12,12)) 
+sns.heatmap(corrmat,cmap=cmap,annot=True,square=True) 
+  dataframe['Year'] = dataframe['Date'].dt.year 
+  dataframe['Month'] = dataframe['Date'].dt.month 
+  dataframe['Day'] = dataframe['Date'].dt.day  
+ dataframe.drop(['Date'], axis=1, inplace=True)   
+dataframe['RISK_MM'] = dataframe.Rainfall.shift(-1)   
+return dataframe def Rain_process(dataframe):
+dataframe['RainToday'].replace({'No' : 0, 'Yes' : 1}, inplace=True)   
+dataframe['RainTomorrow'].replace({'No' : 0, 'Yes' : 1}, inplace=True)   return dataframe
+def model_1(dataframe):
+fake_df = Date_process(dataframe.copy())   
+fake_df = Rain_process(fake_df)   
+X=fake_df   numerical_cols = [col for col in X.columns if X[col].dtypes == "float64"]   
+categorical_cols = [col for col in X.columns if X[col].dtypes == 'object']
+  for col in numerical_cols:     col_median = X[col].median()   
+  X[col].fillna(col_median, inplace=True)  
+ X['WindGustDir'].fillna(X['WindGustDir'].mode()[0], inplace=True)
+  X['WindDir9am'].fillna(X['WindDir9am'].mode()[0], inplace=True)   
+X['WindDir3pm'].fillna(X['WindDir3pm'].mode()[0], inplace=True)
+
+  
+  X = pd.get_dummies(X, columns = categorical_cols)  
+  X = X.dropna()
+  target = X['RainTomorrow'].copy()
+  X = X.drop(['RainTomorrow'], axis=1).copy()  
+   return X,target
+X,y = model_1(df.copy()) # Model is provided with train and test dataset
+X_train_full, X_test, y_train_full, y_test = train_test_split(X,y,test_size = 0.25, random_state=0) 
+plt.figure(figsize=(7,7)) 
+sns.scatterplot(x='MaxTemp',y='MinTemp',hue='RainTomorrow',palette='inferno',data=df)
+<Axes: xlabel='MaxTemp', ylabel='MinTemp'>
+plt.figure(figsize=(7,7)) 
+sns.scatterplot(x='Humidity9am',y='Temp9am',hue='RainTomorrow',palette='inferno',data=df) 
+<Axes: xlabel='Humidity9am', ylabel='Temp9am'>
+plt.figure(figsize=(7,7))
+sns.scatterplot(x='Pressure3pm',y='Humidity3pm',hue='RainTomorrow',palette='inferno',data=df)
+<Axes: xlabel='Pressure3pm', ylabel='Humidity3pm'>
+X_train_full 
+MinTemp MaxTemp Rainfall Evaporation Sunshine WindGustSpeed WindSpeed9am WindSpeed3pm Humidity9am Humidity3
+X_valid, X_train = X_train_full[:53322], X_train_full[53322:] 
+y_valid, y_train = y_train_full[:90012	21.5	31.7	533220.0], y_train_full4.8 [53322:]
+from tensorflow.keras import regularizers
+from keras import callbacks
+np.random.seed(59452	0)  
+model = keras.models.Sequential()
+model.add(Dense(118, input_dim=118, activation='relu'))
+ model.add(Dense(118, input_dim=118, activation='relu'))
+ model.add(Dense(118, input_dim=118, activation='relu'))
+model.add(Dense(118, input_dim=118, activation='relu')) 
+model.add(Dense(59, input_dim=118, activation=0.0 'relu')) 
+model.add(Dense(1, activation='sigmoid')) 
+keras.utils.plot_model(model, "my_fashion_mnist_model.png", show_shapes=True) 
+early_stopping_cb = callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True) 
+def last_time_step_bce(Y_true, Y_pred):   return tf.keras.metrics.binary_crossentropy(y_true, y_pred)  
+model.compile(loss="binary_crossentropy", optimizer="Adam", metrics=["accuracy"])  
+train = model.fit(X_train, y_train, epochs=25, validation_data=(X_valid,y_valid),callbacks=[early_stopping_cb])
+history_df = pd.DataFrame(train.history)
+plt.plot(history_df.loc[:, ['loss']], label='Training loss')
+ plt.plot(history_df.loc[:, ['val_loss']], label='Validation loss')
+ plt.title('Training and Validation loss')
+ plt.xlabel('Epochs') plt.ylabel('Loss') 
+plt.legend(loc="best") plt.show()
+history_df = pd.DataFrame(train.history)
+plt.plot(history_df.loc[:, ['accuracy']], label='Training accuracy') 
+plt.plot(history_df.loc[:, ['val_accuracy']], label='Validation accuracy')
+plt.title('Training and Validation accuracy')
+ plt.xlabel('Epochs')
+ plt.ylabel('Accuracy')
+ plt.legend()
+ plt.show()
+y_pred = model.predict(X_test) 
+model.evaluate(X_test,y_test)
+rounded = [round(x[0]) for x in y_pred] y_pred = rounded
+cm_matrix = pd.DataFrame(data=confusion_matrix(y_test, y_pred), columns=['No Rain', 'Rain'], index=['No Rain', 'Rain']) cm_matrix_coef = cm_matrix/cm_matrix.sum(axis=1)
+f1_score(y_test, y_pred) 
+from sklearn.metrics import mean_squared_error mean_squared_error(y_test, y_pred)
+import seaborn as sns
+plt.subplots(figsize=(12,8)) sns.heatmap(cm_matrix, annot = True)
+cm_matrix_coef.style.background_gradient(cmap="Blues")
+from sklearn.model_selection import StratifiedKFold
+kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+ cvscores=[] X,Y = model_1(df.copy())
+for train, test in kfold.split(X, Y):
+  training_data = X.iloc[train]   
+training_validation_data = Y.iloc[train]
+  test_data = X.iloc[test] 
+  test_validation_data = Y.iloc[test]
+  model = keras.models.Sequential()
+  model.add(Dense(118, input_dim=118, activation='relu'))
+  model.add(Dense(118, input_dim=118, activation='relu'))
+ model.add(Dense(118, input_dim=118, activation='relu'))
+  #model.add(Dropout(0.25))
+  model.add(Dense(59, input_dim=118, activation='relu'))
+ # model.add(Dropout(0.5))   
+model.add(Dense(1, activation='sigmoid'))
+   model.compile(loss="binary_crossentropy", optimizer="Adam", metrics=["accuracy"])  
+ model.fit(X_train, y_train, epochs=25, validation_data=(X_valid,y_valid),callbacks=[early_stopping_cb])
+  scores = model.evaluate(test_data,test_validation_data, verbose=0) 
+  cvscores.append(scores[1]*100)
+  i=1
+for index in cvscores:
+print(f"Result of iteration {i} : %.2f%%" % (index))
+i+=1
